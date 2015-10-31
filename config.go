@@ -243,6 +243,8 @@ var header = `# Telegraf configuration
   # Override default hostname, if empty use os.Hostname()
   hostname = ""
 
+  # prefix metrics with plugin names
+  metric_prefix_pluginname = false
 
 ###############################################################################
 #                                  OUTPUTS                                    #

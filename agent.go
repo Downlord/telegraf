@@ -62,6 +62,9 @@ type Agent struct {
 	Debug    bool
 	Hostname string
 
+   // Option to prefix metric name with plugin name
+   AddPrefix bool
+   
 	Tags map[string]string
 
 	outputs []*runningOutput
@@ -76,6 +79,7 @@ func NewAgent(config *Config) (*Agent, error) {
 		RoundInterval: true,
 		FlushInterval: duration.Duration{10 * time.Second},
 		FlushRetries:  2,
+      AddPrefix:     true,
 		FlushJitter:   duration.Duration{5 * time.Second},
 	}
 
@@ -208,7 +212,9 @@ func (a *Agent) gatherParallel(pointChan chan *client.Point) error {
 
 			acc := NewAccumulator(plugin.config, pointChan)
 			acc.SetDebug(a.Debug)
-			acc.SetPrefix(plugin.name + "_")
+			if a.AddPrefix {
+            acc.SetPrefix(plugin.name + "_")
+         }
 			acc.SetDefaultTags(a.Tags)
 
 			if err := plugin.plugin.Gather(acc); err != nil {
@@ -241,7 +247,9 @@ func (a *Agent) gatherSeparate(
 
 		acc := NewAccumulator(plugin.config, pointChan)
 		acc.SetDebug(a.Debug)
-		acc.SetPrefix(plugin.name + "_")
+		if a.AddPrefix {
+         acc.SetPrefix(plugin.name + "_")
+      }
 		acc.SetDefaultTags(a.Tags)
 
 		if err := plugin.plugin.Gather(acc); err != nil {
@@ -287,8 +295,9 @@ func (a *Agent) Test() error {
 	for _, plugin := range a.plugins {
 		acc := NewAccumulator(plugin.config, pointChan)
 		acc.SetDebug(true)
-		acc.SetPrefix(plugin.name + "_")
-
+		if a.AddPrefix {
+         acc.SetPrefix(plugin.name + "_")
+      }
 		fmt.Printf("* Plugin: %s, Collection 1\n", plugin.name)
 		if plugin.config.Interval != 0 {
 			fmt.Printf("* Internal: %s\n", plugin.config.Interval)
